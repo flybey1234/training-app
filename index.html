@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1F3864">
+<title>12周训练计划</title>
+<link rel="manifest" href="manifest.json">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root { --primary:#1F3864; --accent:#2E75B6; --green:#548235; --orange:#C55A11; --red:#C00000; --bg:#f5f5f5; --card:#fff; --text:#333; --gray:#888; }
+body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--bg); color:var(--text); padding-bottom:70px; -webkit-tap-highlight-color:transparent; }
+.header { background:var(--primary); color:#fff; padding:15px; text-align:center; position:sticky; top:0; z-index:100; }
+.header h1 { font-size:18px; font-weight:600; }
+.header .subtitle { font-size:12px; opacity:0.8; margin-top:3px; }
+
+/* Tab Bar */
+.tabbar { position:fixed; bottom:0; left:0; right:0; background:#fff; display:flex; border-top:1px solid #e0e0e0; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
+.tabbar .tab { flex:1; padding:8px 0; text-align:center; font-size:11px; color:var(--gray); cursor:pointer; transition:color 0.2s; }
+.tabbar .tab.active { color:var(--primary); }
+.tabbar .tab .icon { font-size:22px; display:block; margin-bottom:2px; }
+
+/* Pages */
+.page { display:none; padding:12px; }
+.page.active { display:block; }
+
+/* Cards */
+.card { background:var(--card); border-radius:12px; padding:15px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.card-title { font-size:15px; font-weight:600; color:var(--primary); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.card-title .badge { font-size:11px; background:var(--accent); color:#fff; padding:2px 8px; border-radius:10px; }
+
+/* Training Plan */
+.day-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.day-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:5px; }
+.day-tab { padding:6px 14px; border-radius:20px; font-size:13px; background:#e8e8e8; white-space:nowrap; cursor:pointer; border:none; }
+.day-tab.active { background:var(--primary); color:#fff; }
+.session { margin-bottom:10px; }
+.session-title { font-size:13px; font-weight:600; color:var(--accent); margin-bottom:6px; }
+.exercise-item { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:13px; }
+.exercise-item:last-child { border-bottom:none; }
+.exercise-name { flex:1; }
+.exercise-detail { color:var(--gray); font-size:12px; margin-left:8px; }
+
+/* Log Form */
+.form-group { margin-bottom:12px; }
+.form-label { font-size:13px; font-weight:500; color:var(--gray); margin-bottom:4px; display:block; }
+.form-input { width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:15px; background:#fafafa; }
+.form-input:focus { outline:none; border-color:var(--accent); background:#fff; }
+.form-row { display:flex; gap:8px; }
+.form-row .form-group { flex:1; }
+.btn { display:block; width:100%; padding:12px; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-green { background:var(--green); color:#fff; }
+.btn-orange { background:var(--orange); color:#fff; }
+.btn-sm { padding:8px 16px; font-size:13px; width:auto; display:inline-block; }
+.btn-outline { background:transparent; border:1px solid var(--accent); color:var(--accent); }
+
+/* Stats */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.stat-box { background:var(--card); border-radius:10px; padding:12px 8px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.stat-value { font-size:22px; font-weight:700; color:var(--primary); }
+.stat-label { font-size:11px; color:var(--gray); margin-top:2px; }
+.stat-change { font-size:11px; margin-top:3px; }
+.stat-change.up { color:var(--red); }
+.stat-change.down { color:var(--green); }
+
+/* Chart */
+.chart-container { width:100%; height:200px; position:relative; margin:10px 0; }
+.chart-bar { position:absolute; bottom:0; background:var(--accent); border-radius:4px 4px 0 0; transition:height 0.3s; min-width:20px; }
+.chart-label { position:absolute; bottom:-20px; font-size:10px; color:var(--gray); text-align:center; transform:translateX(-50%); }
+
+/* History */
+.history-item { padding:10px 0; border-bottom:1px solid #f0f0f0; }
+.history-date { font-size:12px; color:var(--gray); }
+.history-content { font-size:13px; margin-top:4px; }
+.history-tag { display:inline-block; font-size:11px; padding:2px 6px; border-radius:4px; margin-right:4px; }
+.tag-run { background:#E3F2FD; color:#1565C0; }
+.tag-strength { background:#E8F5E9; color:#2E7D32; }
+.tag-core { background:#FFF3E0; color:#E65100; }
+.tag-football { background:#F3E5F5; color:#7B1FA2; }
+
+/* Diet */
+.diet-meal { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid #f0f0f0; }
+.diet-time { font-size:12px; color:var(--gray); min-width:50px; }
+.diet-info { flex:1; }
+.diet-food { font-size:14px; font-weight:500; }
+.diet-amount { font-size:12px; color:var(--gray); }
+.diet-macros { display:flex; gap:8px; margin-top:3px; font-size:11px; }
+.macro-p { color:var(--red); }
+.macro-c { color:var(--orange); }
+.macro-f { color:var(--green); }
+
+/* Toggle */
+.toggle-group { display:flex; background:#e8e8e8; border-radius:8px; padding:2px; margin-bottom:12px; }
+.toggle-btn { flex:1; padding:8px; text-align:center; border-radius:6px; font-size:13px; cursor:pointer; border:none; background:transparent; }
+.toggle-btn.active { background:#fff; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.1); }
+
+/* Week Selector */
+.week-selector { display:flex; align-items:center; justify-content:center; gap:15px; margin-bottom:12px; }
+.week-selector button { background:none; border:none; font-size:20px; color:var(--primary); cursor:pointer; padding:5px; }
+.week-selector .week-num { font-size:16px; font-weight:600; min-width:80px; text-align:center; }
+
+/* Progress Ring */
+.progress-ring { display:flex; align-items:center; justify-content:center; gap:20px; padding:15px; }
+.ring { width:80px; height:80px; position:relative; }
+.ring svg { transform:rotate(-90deg); }
+.ring-bg { fill:none; stroke:#e8e8e8; stroke-width:8; }
+.ring-fill { fill:none; stroke:var(--accent); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 0.5s; }
+.ring-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:18px; font-weight:700; color:var(--primary); }
+.ring-label { font-size:12px; color:var(--gray); text-align:center; margin-top:4px; }
+
+/* Checklist */
+.check-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #f0f0f0; }
+.check-box { width:22px; height:22px; border:2px solid #ddd; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+.check-box.checked { background:var(--green); border-color:var(--green); color:#fff; }
+.check-text { font-size:14px; flex:1; }
+.check-text.done { text-decoration:line-through; color:var(--gray); }
+
+/* Supp */
+.supp-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #f0f0f0; }
+.supp-icon { font-size:24px; }
+.supp-info { flex:1; }
+.supp-name { font-size:14px; font-weight:500; }
+.supp-dose { font-size:12px; color:var(--gray); }
+
+/* Empty State */
+.empty { text-align:center; padding:40px 20px; color:var(--gray); }
+.empty .icon { font-size:48px; margin-bottom:10px; }
+
+/* Animations */
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.card { animation:fadeIn 0.3s ease; }
+
+/* Responsive */
+@media(min-width:768px) { .page { max-width:500px; margin:0 auto; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💪 12周训练计划</h1>
+  <div class="subtitle" id="headerDate"></div>
+</div>
+
+<!-- ============ Page 1: Today ============ -->
+<div class="page active" id="pageToday">
+  <div class="day-tabs" id="dayTabs"></div>
+  
+  <div class="card">
+    <div class="card-title">🏃 今日训练计划</div>
+    <div id="todayPlan"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">✅ 今日完成情况 <span class="badge" id="progressBadge">0%</span></div>
+    <div id="todayChecklist"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💊 营养补剂</div>
+    <div class="supp-item"><div class="supp-icon">🦴</div><div class="supp-info"><div class="supp-name">氨糖软骨素+MSM</div><div class="supp-dose">每日2-3粒，随餐服用</div></div><div class="check-box" onclick="toggleSupp(this,'glucosamine')"></div></div>
+    <div class="supp-item"><div class="supp-icon">🫀</div><div class="supp-info"><div class="supp-name">奶蓟草护肝片</div><div class="supp-dose">每日1-2粒，随餐服用</div></div><div class="check-box" onclick="toggleSupp(this,'milkthistle')"></div></div>
+  </div>
+
+  <button class="btn btn-primary" onclick="showLogForm()">📝 记录今日训练</button>
+</div>
+
+<!-- ============ Page 2: Log ============ -->
+<div class="page" id="pageLog">
+  <div class="card">
+    <div class="card-title">📝 训练记录</div>
+    <div class="form-group">
+      <label class="form-label">训练日期</label>
+      <input type="date" class="form-input" id="logDate">
+    </div>
+    <div class="toggle-group">
+      <button class="toggle-btn active" onclick="setLogType(this,'run')">🏃 跑步</button>
+      <button class="toggle-btn" onclick="setLogType(this,'strength')">💪 器械</button>
+      <button class="toggle-btn" onclick="setLogType(this,'core')">🧘 核心</button>
+      <button class="toggle-btn" onclick="setLogType(this,'football')">⚽ 足球</button>
+    </div>
+    
+    <div id="logFormRun">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">距离(km)</label><input type="number" step="0.1" class="form-input" id="runDist" placeholder="3.0"></div>
+        <div class="form-group"><label class="form-label">配速(分/km)</label><input type="text" class="form-input" id="runPace" placeholder="5:30"></div>
+      </div>
+      <div class="form-group"><label class="form-label">用时(分钟)</label><input type="number" class="form-input" id="runTime" placeholder="16"></div>
+    </div>
+
+    <div id="logFormStrength" style="display:none">
+      <div id="strengthExercises"></div>
+      <button class="btn btn-sm btn-outline" onclick="addExercise()" style="margin:10px 0">+ 添加动作</button>
+    </div>
+
+    <div id="logFormCore" style="display:none">
+      <div class="form-group"><label class="form-label">核心动作</label><input type="text" class="form-input" id="coreName" placeholder="平板支撑/卷腹等"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">组数</label><input type="number" class="form-input" id="coreSets" placeholder="3"></div>
+        <div class="form-group"><label class="form-label">次数/时长</label><input type="text" class="form-input" id="coreReps" placeholder="20次/30秒"></div>
+      </div>
+    </div>
+
+    <div id="logFormFootball" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">时长(分钟)</label><input type="number" class="form-input" id="footballTime" placeholder="90"></div>
+        <div class="form-group"><label class="form-label">跑动距离(km)</label><input type="number" step="0.1" class="form-input" id="footballDist" placeholder="5.0"></div>
+      </div>
+      <div class="form-group"><label class="form-label">膝踝不适(1-5)</label><input type="range" min="1" max="5" value="1" id="kneePain" oninput="this.nextElementSibling.textContent=this.value"><span>1</span></div>
+    </div>
+
+    <div class="form-group"><label class="form-label">备注</label><input type="text" class="form-input" id="logNote" placeholder="感觉如何？"></div>
+    <button class="btn btn-green" onclick="saveLog()" style="margin-top:10px">💾 保存记录</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📊 本周训练记录</div>
+    <div id="weekLogs"></div>
+  </div>
+</div>
+
+<!-- ============ Page 3: Body ============ -->
+<div class="page" id="pageBody">
+  <div class="card">
+    <div class="card-title">📊 身体数据</div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-value" id="currentWeight">77.0</div><div class="stat-label">体重(kg)</div><div class="stat-change down" id="weightChange"></div></div>
+      <div class="stat-box"><div class="stat-value" id="currentWaist">-</div><div class="stat-label">腰围(cm)</div></div>
+      <div class="stat-box"><div class="stat-value" id="currentBF">-</div><div class="stat-label">体脂率(%)</div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">体重(kg)</label><input type="number" step="0.1" class="form-input" id="inputWeight" placeholder="77.0"></div>
+      <div class="form-group"><label class="form-label">腰围(cm)</label><input type="number" step="0.1" class="form-input" id="inputWaist" placeholder=""></div>
+    </div>
+    <div class="form-group"><label class="form-label">体脂率(%)</label><input type="number" step="0.1" class="form-input" id="inputBF" placeholder=""></div>
+    <button class="btn btn-primary" onclick="saveBodyData()">💾 保存数据</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📈 体重趋势</div>
+    <div class="chart-container" id="weightChart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏆 运动表现</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">5km配速</label><input type="text" class="form-input" id="perf5km" placeholder="5:30"></div>
+      <div class="form-group"><label class="form-label">平板支撑(秒)</label><input type="number" class="form-input" id="perfPlank" placeholder=""></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">俯卧撑(个)</label><input type="number" class="form-input" id="perfPushup" placeholder=""></div>
+      <div class="form-group"><label class="form-label">登山跑(个)</label><input type="number" class="form-input" id="perfMountain" placeholder=""></div>
+    </div>
+    <button class="btn btn-green" onclick="savePerf()">💾 保存表现</button>
+  </div>
+</div>
+
+<!-- ============ Page 4: Diet ============ -->
+<div class="page" id="pageDiet">
+  <div class="card">
+    <div class="card-title">🍽️ 今日饮食</div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-value" id="totalCal">0</div><div class="stat-label">热量(kcal)</div></div>
+      <div class="stat-box"><div class="stat-value" id="totalProtein">0</div><div class="stat-label">蛋白(g)</div></div>
+      <div class="stat-box"><div class="stat-value" id="totalCarb">0</div><div class="stat-label">碳水(g)</div></div>
+    </div>
+    <div id="todayMeals"></div>
+    <button class="btn btn-sm btn-outline" onclick="showMealForm()" style="margin-top:10px">+ 添加食物</button>
+  </div>
+
+  <div class="card" id="mealFormCard" style="display:none">
+    <div class="card-title">添加食物</div>
+    <div class="form-group"><label class="form-label">食物名称</label><input type="text" class="form-input" id="mealName" placeholder="鸡胸肉/米饭等"></div>
+    <div class="form-group"><label class="form-label">份量</label><input type="text" class="form-input" id="mealAmount" placeholder="100g"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">蛋白(g)</label><input type="number" class="form-input" id="mealProtein" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">碳水(g)</label><input type="number" class="form-input" id="mealCarb" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">脂肪(g)</label><input type="number" class="form-input" id="mealFat" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">时段</label>
+      <select class="form-input" id="mealTime"><option>早餐</option><option>加餐</option><option>午餐</option><option>晚餐</option><option>夜宵</option></select>
+    </div>
+    <button class="btn btn-green" onclick="saveMeal()">💾 保存</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 饮食目标</div>
+    <div style="font-size:13px; line-height:2">
+      <div>🔥 热量：<strong>2000-2100</strong> kcal（训练日）</div>
+      <div>🥩 蛋白质：<strong>120-130</strong> g</div>
+      <div>🍚 碳水：<strong>180-200</strong> g</div>
+      <div>🥑 脂肪：<strong>55-65</strong> g</div>
+      <div>💧 饮水：<strong>>2500</strong> ml</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Page 5: Plan ============ -->
+<div class="page" id="pagePlan">
+  <div class="week-selector">
+    <button onclick="changeWeek(-1)">◀</button>
+    <div class="week-num" id="weekLabel">第1-4周</div>
+    <button onclick="changeWeek(1)">▶</button>
+  </div>
+  
+  <div class="toggle-group" id="phaseToggle">
+    <button class="toggle-btn active" onclick="setPhase(this,1)">基础筑基</button>
+    <button class="toggle-btn" onclick="setPhase(this,2)">强化突破</button>
+    <button class="toggle-btn" onclick="setPhase(this,3)">冲刺达标</button>
+  </div>
+
+  <div class="day-tabs" id="planDayTabs"></div>
+  <div id="planContent"></div>
+
+  <div class="card">
+    <div class="card-title">🎯 12周目标</div>
+    <div style="font-size:13px; line-height:2">
+      <div>📉 体脂率：18-20% → <strong>≤12%</strong></div>
+      <div>💪 俯卧撑：10个 → <strong>30个</strong></div>
+      <div>🏋️ 引体向上：0个 → <strong>5个</strong></div>
+      <div>🏃 5km配速：5'30 → <strong>5'10</strong></div>
+      <div>🦵 深蹲训练器：×20 → <strong>×12×4组</strong></div>
+      <div>⚖️ 体重：77kg → <strong>≤71.5kg</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tabbar">
+  <div class="tab active" onclick="switchPage('Today')"><div class="icon">🏠</div>今日</div>
+  <div class="tab" onclick="switchPage('Log')"><div class="icon">📝</div>记录</div>
+  <div class="tab" onclick="switchPage('Body')"><div class="icon">📊</div>数据</div>
+  <div class="tab" onclick="switchPage('Diet')"><div class="icon">🍽️</div>饮食</div>
+  <div class="tab" onclick="switchPage('Plan')"><div class="icon">📋</div>计划</div>
+</div>
+
+<script>
+// ============================================================
+// 数据
+// ============================================================
+const TRAINING_PLAN = {
+  1: {
+    name: "第一阶段·基础筑基(第1-4周)",
+    days: {
+      1: { // 周一
+        morning: "快走4km(10'配速)\n+动态热身5min\n脚踝绕环×20\n膝盖绕环×20",
+        noon: "跑步3km(5'30)\n①深蹲训练器×20×3\n②推肩训练器×15×3\n③划船器×40×3\n④腿部训练器×15×2/腿\n登山跑×30",
+        evening: "拉伸15min\n弓步压腿40s/腿\n俯身背部拉伸40s\n单腿前倾拉伸40s/腿\n小腿拉伸40s/腿"
+      },
+      2: { // 周二
+        morning: "HIIT 15min\n原地高抬腿30s×6\n开合跳30s×6\n快速踏步30s×6\n休息30s×5轮",
+        noon: "跑步4km(5'30)\n核心训练:\n平板30s×3\n卷腹20×3\n仰卧抬腿15×3\n死虫式10×2\n弹力带抗旋×12×2",
+        evening: "弹力带训练15min\n弹力带深蹲×15×3\n弹力带弯举×15×2\n弹力带面拉×15×2\n拉伸10min"
+      },
+      3: { // 周三
+        morning: "快走5km(10'配速)",
+        noon: "跑步3km(5'30)\n①蹬腿训练器×20×3\n②拉力训练器×15×3\n③提拉训练器×15×3\n④扩胸训练器×15×3\n俯卧撑×10×3",
+        evening: "拉伸15min\n全身拉伸+腹式呼吸\n重点:膝踝拉伸"
+      },
+      4: { // 周四
+        morning: "休息",
+        noon: "跑步5km(5'30)\n核心训练:\n侧平板20s×2/侧\n登山者20×3\n弹力带蚌式×15×2/侧\n弹力带死虫×10×2",
+        evening: "弹力带训练15min\n弹力带推举×15×3\n弹力带划船×15×3\n弹力带蚌式×15×2\n拉伸10min"
+      },
+      5: { // 周五
+        morning: "休息(养腿)",
+        noon: "轻量核心:\n平板30s×2\n卷腹15×2\n弹力带拉伸",
+        evening: "⚽足球前热身\n弹力带激活臀部\n动态拉伸10min"
+      },
+      6: { // 周六
+        morning: "动态拉伸10min\n弓步走+腿摆",
+        noon: "器械恢复:\n划船器×30×2\n拉伸10min\n弓步压腿40s/腿",
+        evening: "⚽足球后恢复\n冰敷膝踝15min\n弓步压腿40s/腿\n全身拉伸10min"
+      },
+      7: { // 周日
+        morning: "完全休息\n或快走4km",
+        noon: "完全休息",
+        evening: "全身拉伸20min\n重点恢复\n腹式呼吸5min"
+      }
+    }
+  },
+  2: {
+    name: "第二阶段·强化突破(第5-8周)",
+    days: {
+      1: {
+        morning: "快走5km+动态热身",
+        noon: "跑步4km(5'20)\n①深蹲训练器×15×4\n②推肩训练器×12×4\n③划船器×40×4\n④腿部训练器×15×3/腿\n登山跑×40",
+        evening: "拉伸15min\n弹力带拉伸"
+      },
+      2: {
+        morning: "HIIT 20min\n高抬腿40s×6\n登山者30s×5\n开合跳40s×6",
+        noon: "跑步5km(5'25)\n核心强化:\n平板45s×3\n卷腹25×3\n仰卧抬腿20×3\n俄式转体15×3",
+        evening: "弹力带20min\n弹力带深蹲×15×3\n弹力带推举×12×3\n弹力带划船×15×3\n弹力带弯举×15×2\n拉伸10min"
+      },
+      3: {
+        morning: "休息",
+        noon: "跑步3km(5'20)\n①蹬腿训练器×15×4\n②拉力训练器×12×4\n③提拉训练器×12×4\n④扩胸训练器×15×3\n俯卧撑×12×3",
+        evening: "瑜伽拉伸15min\n全身恢复"
+      },
+      4: {
+        morning: "HIIT 20min\n弓步交替×12\n弹力带深蹲×15\n开合跳40s×6",
+        noon: "跑步4km(5'20)\n核心:\n侧平板30s×3/侧\n登山者25×3\n弹力带蚌式×15×3/侧",
+        evening: "弹力带20min\n弹力带硬拉×12×3\n弹力带面拉×15×3\n弹力带侧平举×12×3\n弹力带蚌式×15×2\n拉伸10min"
+      },
+      5: { morning: "休息(足球日)", noon: "轻量核心+弹力带", evening: "⚽足球前热身" },
+      6: { morning: "快走4km恢复", noon: "器械恢复:\n划船器×30×3\n弹力带拉伸", evening: "⚽足球后恢复" },
+      7: { morning: "休息/拉伸", noon: "完全休息", evening: "全身拉伸20min" }
+    }
+  },
+  3: {
+    name: "第三阶段·冲刺达标(第9-12周)",
+    days: {
+      1: {
+        morning: "HIIT 25min\nTabata 4min×2\n高抬腿+深蹲\n快速踏步+开合跳",
+        noon: "跑步5km(5'15)\n①深蹲训练器×12×4\n②推肩训练器×10×4\n③划船器×50×4\n④腿部训练器×15×3/腿\n登山跑×50",
+        evening: "拉伸+弹力带"
+      },
+      2: {
+        morning: "快走4km恢复",
+        noon: "跑步5km(5'10)\n核心强化:\n平板60s×3\n卷腹30×3\n弹力带举腿×12×3\n龙旗(离心)×5×3",
+        evening: "弹力带25min\n弹力带深蹲×15×4\n弹力带推举×12×4\n弹力带划船×15×4\n弹力带硬拉×12×3\n拉伸10min"
+      },
+      3: {
+        morning: "HIIT 25min\n冲刺间歇\n30s全力/30s走×10",
+        noon: "跑步3km(5'15)\n①蹬腿训练器×12×4\n②拉力训练器×10×4\n③提拉训练器×10×4\n④卧推训练器×10×3\n俯卧撑×15×3",
+        evening: "瑜伽拉伸15min"
+      },
+      4: {
+        morning: "休息(足球日)",
+        noon: "跑步5km(5'10)\n核心:\n平板80s×2\n自行车25×3\n侧平板40s×3/侧",
+        evening: "⚽足球前"
+      },
+      5: { morning: "休息(足球日)", noon: "轻量核心+弹力带", evening: "⚽足球前" },
+      6: {
+        morning: "HIIT 20min\n循环训练弹力带×3轮",
+        noon: "器械冲刺C:\n深蹲训练器×15×5\n推肩训练器×10×4\n划船器×50×4\n拉伸10min",
+        evening: "⚽足球后恢复"
+      },
+      7: { morning: "完全休息", noon: "完全休息", evening: "全身拉伸20min" }
+    }
+  }
+};
+
+const EXERCISES = ["深蹲训练器","蹬腿训练器","推肩训练器","划船器","提拉训练器","拉力训练器","扩胸训练器","腿部训练器","卧推训练器","登山跑"];
+const DAY_NAMES = ["周日","周一","周二","周三","周四","周五","周六"];
+
+let currentPhase = 1;
+let currentDay = new Date().getDay() || 7;
+let logType = 'run';
+
+// ============================================================
+// 工具函数
+// ============================================================
+function getData(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch(e) { return def; } }
+function setData(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+function today() { return new Date().toISOString().split('T')[0]; }
+
+// ============================================================
+// 页面切换
+// ============================================================
+function switchPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page'+name).classList.add('active');
+  document.querySelectorAll('.tabbar .tab').forEach((t,i) => {
+    t.classList.toggle('active', ['Today','Log','Body','Diet','Plan'][i] === name);
+  });
+  if(name === 'Body') loadBodyData();
+  if(name === 'Diet') loadDietData();
+  if(name === 'Log') loadWeekLogs();
+  if(name === 'Plan') loadPlan();
+}
+
+// ============================================================
+// 今日计划
+// ============================================================
+function renderDayTabs() {
+  const tabs = document.getElementById('dayTabs');
+  tabs.innerHTML = [1,2,3,4,5,6,7].map(d =>
+    `<button class="day-tab ${d===currentDay?'active':''}" onclick="selectDay(${d})">${DAY_NAMES[d]}</button>`
+  ).join('');
+}
+
+function selectDay(d) {
+  currentDay = d;
+  renderDayTabs();
+  renderTodayPlan();
+}
+
+function renderTodayPlan() {
+  const plan = TRAINING_PLAN[currentPhase].days[currentDay];
+  if (!plan) { document.getElementById('todayPlan').innerHTML = '<div class="empty"><div class="icon">📋</div>暂无训练计划</div>'; return; }
+  
+  let html = '';
+  const sessions = [
+    { key:'morning', title:'🌅 早晨 (6:00-6:40)', color:'var(--accent)' },
+    { key:'noon', title:'☀️ 中午 (12:00-12:40) 户外器械', color:'var(--green)' },
+    { key:'evening', title:'🌙 晚间 (19:00-19:30) 瑜伽垫', color:'var(--orange)' }
+  ];
+  
+  sessions.forEach(s => {
+    if (plan[s.key]) {
+      html += `<div class="session"><div class="session-title" style="color:${s.color}">${s.title}</div>`;
+      plan[s.key].split('\n').forEach(line => {
+        if (line.trim()) html += `<div class="exercise-item"><div class="exercise-name">${line}</div></div>`;
+      });
+      html += '</div>';
+    }
+  });
+  
+  document.getElementById('todayPlan').innerHTML = html;
+  renderChecklist();
+}
+
+function renderChecklist() {
+  const key = `check_${today()}_${currentDay}`;
+  const checks = getData(key, {});
+  const plan = TRAINING_PLAN[currentPhase].days[currentDay];
+  if (!plan) return;
+  
+  const items = ['morning','noon','evening'].filter(k => plan[k]);
+  const done = items.filter(k => checks[k]).length;
+  
+  document.getElementById('progressBadge').textContent = Math.round(done/items.length*100) + '%';
+  
+  let html = '';
+  const labels = { morning:'完成早晨训练', noon:'完成中午器械训练', evening:'完成晚间训练' };
+  items.forEach(k => {
+    const checked = checks[k];
+    html += `<div class="check-item"><div class="check-box ${checked?'checked':''}" onclick="toggleCheck('${key}','${k}',this)">${checked?'✓':''}</div><div class="check-text ${checked?'done':''}">${labels[k]}</div></div>`;
+  });
+  document.getElementById('todayChecklist').innerHTML = html;
+}
+
+function toggleCheck(key, field, el) {
+  const checks = getData(key, {});
+  checks[field] = !checks[field];
+  setData(key, checks);
+  renderChecklist();
+}
+
+// ============================================================
+// 训练记录
+// ============================================================
+function showLogForm() {
+  switchPage('Log');
+  document.getElementById('logDate').value = today();
+}
+
+function setLogType(el, type) {
+  logType = type;
+  el.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  ['Run','Strength','Core','Football'].forEach(t => {
+    document.getElementById('logForm'+t).style.display = 'none';
+  });
+  document.getElementById('logForm'+type.charAt(0).toUpperCase()+type.slice(1)).style.display = 'block';
+}
+
+function addExercise() {
+  const div = document.getElementById('strengthExercises');
+  const id = Date.now();
+  div.innerHTML += `<div class="form-row" id="ex_${id}">
+    <div class="form-group"><select class="form-input" id="exName_${id}">${EXERCISES.map(e=>`<option>${e}</option>`).join('')}</select></div>
+    <div class="form-group"><input type="number" class="form-input" id="exSets_${id}" placeholder="组数"></div>
+    <div class="form-group"><input type="number" class="form-input" id="exReps_${id}" placeholder="次数"></div>
+  </div>`;
+}
+
+function saveLog() {
+  const date = document.getElementById('logDate').value || today();
+  const logs = getData('logs', []);
+  
+  let entry = { date, type: logType, ts: Date.now() };
+  
+  if (logType === 'run') {
+    entry.dist = parseFloat(document.getElementById('runDist').value) || 0;
+    entry.pace = document.getElementById('runPace').value;
+    entry.time = parseInt(document.getElementById('runTime').value) || 0;
+  } else if (logType === 'strength') {
+    entry.exercises = [];
+    document.querySelectorAll('[id^="exName_"]').forEach(el => {
+      const id = el.id.split('_')[1];
+      entry.exercises.push({
+        name: document.getElementById('exName_'+id).value,
+        sets: parseInt(document.getElementById('exSets_'+id).value) || 0,
+        reps: parseInt(document.getElementById('exReps_'+id).value) || 0
+      });
+    });
+  } else if (logType === 'core') {
+    entry.name = document.getElementById('coreName').value;
+    entry.sets = parseInt(document.getElementById('coreSets').value) || 0;
+    entry.reps = document.getElementById('coreReps').value;
+  } else if (logType === 'football') {
+    entry.time = parseInt(document.getElementById('footballTime').value) || 0;
+    entry.dist = parseFloat(document.getElementById('footballDist').value) || 0;
+    entry.kneePain = parseInt(document.getElementById('kneePain').value) || 1;
+  }
+  
+  entry.note = document.getElementById('logNote').value;
+  logs.push(entry);
+  setData('logs', logs);
+  
+  alert('✅ 记录已保存！');
+  loadWeekLogs();
+}
+
+function loadWeekLogs() {
+  const logs = getData('logs', []);
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1);
+  
+  const weekLogs = logs.filter(l => new Date(l.date) >= weekStart);
+  
+  const typeIcons = { run:'🏃', strength:'💪', core:'🧘', football:'⚽' };
+  const typeNames = { run:'跑步', strength:'器械', core:'核心', football:'足球' };
+  
+  let html = '';
+  weekLogs.sort((a,b) => b.ts - a.ts).forEach(l => {
+    let detail = '';
+    if (l.type === 'run') detail = `${l.dist}km / ${l.pace}配速`;
+    else if (l.type === 'strength') detail = l.exercises?.map(e => `${e.name}×${e.sets}×${e.reps}`).join(', ') || '';
+    else if (l.type === 'core') detail = `${l.name} ${l.sets}组×${l.reps}`;
+    else if (l.type === 'football') detail = `${l.time}分钟 / ${l.dist}km`;
+    
+    html += `<div class="history-item"><div class="history-date">${l.date}</div><div class="history-content"><span class="history-tag tag-${l.type}">${typeIcons[l.type]} ${typeNames[l.type]}</span>${detail}</div></div>`;
+  });
+  
+  if (!html) html = '<div class="empty"><div class="icon">📝</div>本周暂无记录</div>';
+  document.getElementById('weekLogs').innerHTML = html;
+}
+
+// ============================================================
+// 身体数据
+// ============================================================
+function loadBodyData() {
+  const body = getData('body', []);
+  const latest = body.length ? body[body.length-1] : null;
+  
+  if (latest) {
+    document.getElementById('currentWeight').textContent = latest.weight || '-';
+    document.getElementById('currentWaist').textContent = latest.waist || '-';
+    document.getElementById('currentBF').textContent = latest.bf || '-';
+    if (body.length >= 2) {
+      const diff = (latest.weight || 0) - (body[body.length-2].weight || 0);
+      const el = document.getElementById('weightChange');
+      el.textContent = (diff > 0 ? '+' : '') + diff.toFixed(1) + 'kg';
+      el.className = 'stat-change ' + (diff > 0 ? 'up' : 'down');
+    }
+  }
+  
+  renderWeightChart(body);
+}
+
+function saveBodyData() {
+  const body = getData('body', []);
+  const entry = { date: today() };
+  const w = document.getElementById('inputWeight').value;
+  const waist = document.getElementById('inputWaist').value;
+  const bf = document.getElementById('inputBF').value;
+  if (w) entry.weight = parseFloat(w);
+  if (waist) entry.waist = parseFloat(waist);
+  if (bf) entry.bf = parseFloat(bf);
+  
+  body.push(entry);
+  setData('body', body);
+  alert('✅ 身体数据已保存！');
+  loadBodyData();
+}
+
+function renderWeightChart(body) {
+  const container = document.getElementById('weightChart');
+  if (body.length < 2) { container.innerHTML = '<div class="empty" style="height:200px"><div class="icon">📈</div>至少记录2次数据后显示趋势</div>'; return; }
+  
+  const weights = body.filter(b => b.weight).slice(-14);
+  const max = Math.max(...weights.map(w => w.weight));
+  const min = Math.min(...weights.map(w => w.weight));
+  const range = max - min || 1;
+  const barWidth = Math.min(30, (container.offsetWidth - 20) / weights.length - 4);
+  
+  let html = '';
+  weights.forEach((w, i) => {
+    const height = ((w.weight - min) / range * 140) + 30;
+    const left = (i / weights.length * 100);
+    html += `<div class="chart-bar" style="height:${height}px;left:${left}%;width:${barWidth}px"></div>`;
+    html += `<div class="chart-label" style="left:${left + barWidth/container.offsetWidth*50}%">${w.date.slice(5)}</div>`;
+  });
+  container.innerHTML = html;
+}
+
+function savePerf() {
+  const perf = getData('perf', []);
+  perf.push({
+    date: today(),
+    km5: document.getElementById('perf5km').value,
+    plank: parseInt(document.getElementById('perfPlank').value) || 0,
+    pushup: parseInt(document.getElementById('perfPushup').value) || 0,
+    mountain: parseInt(document.getElementById('perfMountain').value) || 0
+  });
+  setData('perf', perf);
+  alert('✅ 运动表现已保存！');
+}
+
+// ============================================================
+// 饮食
+// ============================================================
+function loadDietData() {
+  const meals = getData('meals', []).filter(m => m.date === today());
+  let totalCal = 0, totalP = 0, totalC = 0;
+  
+  meals.forEach(m => {
+    totalP += m.protein || 0;
+    totalC += m.carb || 0;
+    totalCal += ((m.protein||0)*4 + (m.carb||0)*4 + (m.fat||0)*9);
+  });
+  
+  document.getElementById('totalCal').textContent = totalCal;
+  document.getElementById('totalProtein').textContent = totalP;
+  document.getElementById('totalCarb').textContent = totalC;
+  
+  let html = '';
+  meals.forEach(m => {
+    const cal = ((m.protein||0)*4 + (m.carb||0)*4 + (m.fat||0)*9);
+    html += `<div class="diet-meal"><div class="diet-time">${m.time}</div><div class="diet-info"><div class="diet-food">${m.name}</div><div class="diet-amount">${m.amount} · ${cal}kcal</div><div class="diet-macros"><span class="macro-p">P${m.protein}g</span><span class="macro-c">C${m.carb}g</span><span class="macro-f">F${m.fat}g</span></div></div></div>`;
+  });
+  
+  if (!html) html = '<div class="empty" style="padding:20px"><div class="icon">🍽️</div>今日暂无饮食记录</div>';
+  document.getElementById('todayMeals').innerHTML = html;
+}
+
+function showMealForm() {
+  document.getElementById('mealFormCard').style.display = 'block';
+}
+
+function saveMeal() {
+  const meals = getData('meals', []);
+  meals.push({
+    date: today(),
+    time: document.getElementById('mealTime').value,
+    name: document.getElementById('mealName').value,
+    amount: document.getElementById('mealAmount').value,
+    protein: parseFloat(document.getElementById('mealProtein').value) || 0,
+    carb: parseFloat(document.getElementById('mealCarb').value) || 0,
+    fat: parseFloat(document.getElementById('mealFat').value) || 0
+  });
+  setData('meals', meals);
+  document.getElementById('mealFormCard').style.display = 'none';
+  loadDietData();
+}
+
+// ============================================================
+// 计划
+// ============================================================
+function loadPlan() {
+  const plan = TRAINING_PLAN[currentPhase];
+  document.getElementById('weekLabel').textContent = plan.name;
+  
+  const tabs = document.getElementById('planDayTabs');
+  tabs.innerHTML = [1,2,3,4,5,6,7].map(d =>
+    `<button class="day-tab ${d===currentDay?'active':''}" onclick="selectPlanDay(${d})">${DAY_NAMES[d]}</button>`
+  ).join('');
+  
+  renderPlanContent();
+}
+
+function selectPlanDay(d) {
+  currentDay = d;
+  loadPlan();
+}
+
+function setPhase(el, p) {
+  currentPhase = p;
+  el.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  loadPlan();
+}
+
+function changeWeek(delta) {
+  currentPhase = Math.max(1, Math.min(3, currentPhase + delta));
+  document.querySelectorAll('#phaseToggle .toggle-btn').forEach((b,i) => {
+    b.classList.toggle('active', i === currentPhase - 1);
+  });
+  loadPlan();
+}
+
+function renderPlanContent() {
+  const plan = TRAINING_PLAN[currentPhase].days[currentDay];
+  if (!plan) return;
+  
+  let html = '<div class="card"><div class="card-title">📋 今日计划</div>';
+  const sessions = [
+    { key:'morning', title:'🌅 早晨' },
+    { key:'noon', title:'☀️ 中午 · 户外器械' },
+    { key:'evening', title:'🌙 晚间 · 瑜伽垫' }
+  ];
+  
+  sessions.forEach(s => {
+    if (plan[s.key]) {
+      html += `<div style="margin-bottom:12px"><div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px">${s.title}</div>`;
+      plan[s.key].split('\n').forEach(line => {
+        if (line.trim()) html += `<div style="font-size:13px;padding:4px 0;border-bottom:1px solid #f5f5f5">${line}</div>`;
+      });
+      html += '</div>';
+    }
+  });
+  
+  html += '</div>';
+  document.getElementById('planContent').innerHTML = html;
+}
+
+// ============================================================
+// 补剂
+// ============================================================
+function toggleSupp(el, type) {
+  const key = `supp_${today()}_${type}`;
+  const checked = !getData(key, false);
+  setData(key, checked);
+  el.classList.toggle('checked', checked);
+  el.textContent = checked ? '✓' : '';
+}
+
+function loadSupps() {
+  ['glucosamine','milkthistle'].forEach(type => {
+    const checked = getData(`supp_${today()}_${type}`, false);
+    const boxes = document.querySelectorAll('.supp-item .check-box');
+    const idx = type === 'glucosamine' ? 0 : 1;
+    if (boxes[idx]) {
+      boxes[idx].classList.toggle('checked', checked);
+      boxes[idx].textContent = checked ? '✓' : '';
+    }
+  });
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+function init() {
+  const now = new Date();
+  const dayOfWeek = now.getDay() || 7;
+  
+  // 根据星期几设置当前阶段
+  const weekNum = Math.ceil(now.getDate() / 7);
+  if (weekNum <= 4) currentPhase = 1;
+  else if (weekNum <= 8) currentPhase = 2;
+  else currentPhase = 3;
+  
+  document.getElementById('headerDate').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${DAY_NAMES[dayOfWeek]}`;
+  document.getElementById('logDate').value = today();
+  
+  renderDayTabs();
+  renderTodayPlan();
+  loadSupps();
+}
+
+// Register service worker for PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+init();
+</script>
+</body>
+</html>
